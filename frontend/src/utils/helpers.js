@@ -66,5 +66,5 @@ export function shareUrl(url, title = 'Synclipt') {
 }
 
 export function buildClipboardUrl(code) {
-  return `${window.location.origin}/synclipt/clipboard/${code}`
+  return `${window.location.origin}/clipboard/${code}`
 }
