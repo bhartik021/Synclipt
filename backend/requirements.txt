@@ -31,6 +31,10 @@ celery==5.4.0
     # via
     #   -r requirements.in
     #   django-celery-beat
+certifi==2026.6.17
+    # via
+    #   cloudinary
+    #   requests
 cffi==2.0.0
     # via
     #   autobahn
@@ -41,6 +45,8 @@ channels==4.1.0
     #   channels-redis
 channels-redis==4.2.0
     # via -r requirements.in
+charset-normalizer==3.4.9
+    # via requests
 click==8.4.1
     # via
     #   celery
@@ -54,6 +60,10 @@ click-plugins==1.1.1.2
     # via celery
 click-repl==0.3.0
     # via celery
+cloudinary==1.45.0
+    # via
+    #   -r requirements.in
+    #   django-cloudinary-storage
 constantly==23.10.4
     # via twisted
 cron-descriptor==2.1.0
@@ -80,6 +90,8 @@ django==4.2.16
     #   djangorestframework
 django-celery-beat==2.7.0
     # via -r requirements.in
+django-cloudinary-storage==0.3.0
+    # via -r requirements.in
 django-cors-headers==4.4.0
     # via -r requirements.in
 django-ratelimit==4.1.0
@@ -104,6 +116,7 @@ idna==3.18
     # via
     #   anyio
     #   hyperlink
+    #   requests
     #   twisted
 incremental==24.11.0
     # via twisted
@@ -148,10 +161,14 @@ redis==5.2.0
     # via
     #   -r requirements.in
     #   channels-redis
+requests==2.34.2
+    # via django-cloudinary-storage
 service-identity==24.2.0
     # via twisted
 six==1.17.0
-    # via python-dateutil
+    # via
+    #   cloudinary
+    #   python-dateutil
 sqlparse==0.5.5
     # via django
 twisted[tls]==25.5.0
@@ -169,6 +186,10 @@ tzdata==2026.2
     #   kombu
 ujson==5.13.0
     # via autobahn
+urllib3==2.7.0
+    # via
+    #   cloudinary
+    #   requests
 uvicorn[standard]==0.30.6
     # via -r requirements.in
 uvloop==0.22.1

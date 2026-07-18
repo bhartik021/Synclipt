@@ -19,3 +19,5 @@ uvicorn[standard]>=0.30
 cryptography>=43.0
 django-storages>=1.14
 dj-database-url>=2.1
+django-cloudinary-storage>=0.3.0
+cloudinary>=1.40.0
