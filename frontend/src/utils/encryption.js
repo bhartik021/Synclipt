@@ -46,5 +46,5 @@ export function getKeyFromHash() {
 }
 
 export function buildEncryptedUrl(code, keyBase64) {
-  return `${window.location.origin}/synclipt/clipboard/${code}#e2e=${keyBase64}`
+  return `${window.location.origin}/clipboard/${code}#e2e=${keyBase64}`
 }

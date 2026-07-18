@@ -103,8 +103,7 @@ export default function Create() {
 
       toast.success(`Clipboard #${clipboard.code} created`)
       if (encKey) {
-        navigate(`/clipboard/${clipboard.code}`, { replace: false })
-        window.location.replace(buildEncryptedUrl(clipboard.code, encKey))
+        window.location.href = buildEncryptedUrl(clipboard.code, encKey)
       } else {
         navigate(`/clipboard/${clipboard.code}`)
       }
