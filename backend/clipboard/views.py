@@ -149,17 +149,20 @@ class ClipboardDetailView(APIView):
         if not token or str(clipboard.delete_token) != token:
             return Response({'error': 'Not authorised to delete this clipboard.'}, status=status.HTTP_403_FORBIDDEN)
 
-        self._broadcast(code, 'clipboard.deleted', {'code': code})
         clipboard.delete()
         logger.info('Clipboard deleted: code=%s', code)
+        self._broadcast(code, 'clipboard.deleted', {'code': code})
         return Response({'message': CLIPBOARD_DELETED}, status=status.HTTP_200_OK)
 
     def _broadcast(self, code, event_type, data):
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f'clipboard_{code.upper()}',
-            {'type': 'clipboard_event', 'event': event_type, 'data': data},
-        )
+        try:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'clipboard_{code.upper()}',
+                {'type': 'clipboard_event', 'event': event_type, 'data': data},
+            )
+        except Exception:
+            logger.warning('WebSocket broadcast failed: event=%s code=%s', event_type, code)
 
 
 class VerifyPasswordView(APIView):

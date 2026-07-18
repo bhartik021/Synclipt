@@ -50,6 +50,8 @@ export function useDeleteClipboard() {
     onError: (error) => {
       if (error.response?.status === 403) {
         toast.error('You can only delete clipboards you created.')
+      } else if (!error.response) {
+        toast.error('Server is waking up — wait 30 seconds and try again.')
       } else {
         toast.error('Failed to delete clipboard')
       }
