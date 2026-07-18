@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/synclipt/(.*)", "destination": "/synclipt/index.html" },
+    { "source": "/", "destination": "/synclipt/index.html" }
+  ]
+}
