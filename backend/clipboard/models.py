@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import make_password
 class Clipboard(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     code = models.CharField(max_length=6, unique=True, db_index=True)
+    delete_token = models.UUIDField(default=uuid.uuid4, editable=False)
     content = models.TextField(blank=True, default='')
     password = models.CharField(max_length=128, blank=True, null=True)
     expires_at = models.DateTimeField()

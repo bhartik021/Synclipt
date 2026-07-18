@@ -145,9 +145,9 @@ class ClipboardDetailView(APIView):
         if not clipboard:
             return Response({'error': CLIPBOARD_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
 
-        auth_error = self._check_auth(request, clipboard, code)
-        if auth_error:
-            return auth_error
+        token = request.headers.get('X-Delete-Token', '').strip()
+        if not token or str(clipboard.delete_token) != token:
+            return Response({'error': 'Not authorised to delete this clipboard.'}, status=status.HTTP_403_FORBIDDEN)
 
         self._broadcast(code, 'clipboard.deleted', {'code': code})
         clipboard.delete()

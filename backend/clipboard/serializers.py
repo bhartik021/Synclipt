@@ -10,9 +10,9 @@ class ClipboardCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Clipboard
-        fields = ['id', 'code', 'content', 'raw_password', 'expiry_hours',
+        fields = ['id', 'code', 'delete_token', 'content', 'raw_password', 'expiry_hours',
                   'burn_after_read', 'is_encrypted', 'is_searchable', 'expires_at', 'created_at']
-        read_only_fields = ['id', 'code', 'expires_at', 'created_at']
+        read_only_fields = ['id', 'code', 'delete_token', 'expires_at', 'created_at']
 
     def create(self, validated_data):
         raw_password = validated_data.pop('raw_password', None)

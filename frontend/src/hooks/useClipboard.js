@@ -17,6 +17,11 @@ export function useClipboardQuery(code) {
 export function useCreateClipboard() {
   return useMutation({
     mutationFn: (data) => clipboardApi.create(data).then((r) => r.data),
+    onSuccess: (data) => {
+      if (data.code && data.delete_token) {
+        clipboardApi.saveToken(data.code, data.delete_token)
+      }
+    },
     onError: (error) => {
       const msg = error.response?.data?.error
         || error.response?.data?.detail
@@ -47,7 +52,13 @@ export function useDeleteClipboard() {
       queryClient.removeQueries({ queryKey: ['clipboard', code] })
       toast.success('Clipboard deleted')
     },
-    onError: () => toast.error('Failed to delete clipboard'),
+    onError: (error) => {
+      if (error.response?.status === 403) {
+        toast.error('You can only delete clipboards you created.')
+      } else {
+        toast.error('Failed to delete clipboard')
+      }
+    },
   })
 }
 
