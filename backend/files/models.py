@@ -1,4 +1,3 @@
-import os
 import uuid
 from django.db import models
 from django.db.models.signals import post_delete
@@ -35,7 +34,6 @@ class FileShare(models.Model):
 def delete_file_on_record_delete(sender, instance, **kwargs):
     if instance.file:
         try:
-            if os.path.exists(instance.file.path):
-                os.remove(instance.file.path)
+            instance.file.delete(save=False)
         except Exception:
             pass

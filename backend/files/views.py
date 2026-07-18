@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 from django.http import Http404, HttpResponseRedirect
 from django.utils import timezone
 from datetime import timedelta
@@ -109,9 +110,6 @@ class FileDownloadView(APIView):
 
         if f.is_expired:
             return Response({'error': FILE_EXPIRED}, status=status.HTTP_410_GONE)
-
-        if not os.path.exists(f.file.path):
-            raise Http404
 
         FileShare.objects.filter(pk=f.pk).update(download_count=F('download_count') + 1)
         f.refresh_from_db(fields=['download_count'])
