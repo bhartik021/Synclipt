@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDropzone } from 'react-dropzone'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCreateClipboard } from '../hooks/useClipboard'
-import FileUpload from '../components/Files/FileUpload'
-import { EXPIRY_OPTIONS, DEFAULT_EXPIRY_KEY, DEFAULT_BURN_KEY, DEFAULT_EXPIRY_VALUE } from '../utils/constants'
+import { filesApi } from '../api/files'
+
+import { EXPIRY_OPTIONS, DEFAULT_EXPIRY_KEY, DEFAULT_BURN_KEY, DEFAULT_EXPIRY_VALUE, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '../utils/constants'
+import { formatBytes } from '../utils/helpers'
 import { generateKey, encryptContent, buildEncryptedUrl } from '../utils/encryption'
 import toast from 'react-hot-toast'
 
@@ -38,9 +41,25 @@ export default function Create() {
   const [isSearchable, setIsSearchable] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [mode, setMode] = useState('text')
+  const [pendingFiles, setPendingFiles] = useState([])
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+
+  const onDrop = useCallback((accepted, rejected) => {
+    if (rejected.length) toast.error(rejected[0].errors[0]?.message || 'File rejected')
+    if (accepted.length) setPendingFiles(accepted)
+  }, [])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: Object.keys(ALLOWED_FILE_TYPES).reduce((acc, t) => ({ ...acc, [t]: [] }), {}),
+    maxSize: MAX_FILE_SIZE,
+    multiple: false,
+  })
 
   const handleCreate = async () => {
     if (mode === 'text' && !content.trim()) { toast.error('Please enter some content'); return }
+    if (mode === 'file' && pendingFiles.length === 0) { toast.error('Please select a file'); return }
     try {
       let finalContent = mode === 'text' ? content : ''
       let encKey = null
@@ -57,10 +76,28 @@ export default function Create() {
       }
       if (usePassword && password) payload.raw_password = password
       const clipboard = await createClipboard.mutateAsync(payload)
+
+      if (mode === 'file' && pendingFiles.length > 0) {
+        setIsUploading(true)
+        try {
+          for (const file of pendingFiles) {
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('expiry_hours', expiryHours)
+            formData.append('clipboard_code', clipboard.code)
+            await filesApi.upload(formData, setUploadProgress)
+          }
+        } catch {
+          toast.error('Clipboard created but file upload failed. Try uploading from the clipboard page.')
+        } finally {
+          setIsUploading(false)
+          setUploadProgress(0)
+        }
+      }
+
       toast.success(`Clipboard #${clipboard.code} created`)
       if (encKey) {
         navigate(`/clipboard/${clipboard.code}`, { replace: false })
-        // Replace current history entry with the hash-bearing URL so the key is in the address bar
         window.location.replace(buildEncryptedUrl(clipboard.code, encKey))
       } else {
         navigate(`/clipboard/${clipboard.code}`)
@@ -161,7 +198,65 @@ export default function Create() {
                 </motion.div>
               ) : (
                 <motion.div key="file" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <FileUpload onUploadComplete={(f) => toast.success(`${f.original_name} uploaded!`)} />
+                  {pendingFiles.length === 0 ? (
+                    <div
+                      {...getRootProps()}
+                      className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200
+                        ${isDragActive
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10'
+                          : 'border-gray-200 dark:border-dark-border hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-dark-border/30'
+                        }`}
+                    >
+                      <input {...getInputProps()} />
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                          </svg>
+                        </div>
+                        {isDragActive ? (
+                          <p className="font-semibold text-primary-600 dark:text-primary-400">Drop file here</p>
+                        ) : (
+                          <>
+                            <p className="font-semibold text-gray-700 dark:text-gray-300">Drag & drop a file here</p>
+                            <p className="text-sm text-gray-400">or <span className="text-primary-500 font-medium">click to browse</span></p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">Images, PDF, DOCX, ZIP — max 50MB</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-gray-200 dark:border-dark-border p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{pendingFiles[0].name}</p>
+                        <p className="text-xs text-gray-400">{formatBytes(pendingFiles[0].size)} · Will upload when you click Create</p>
+                      </div>
+                      <button onClick={() => setPendingFiles([])} className="p-1.5 text-gray-300 hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                        <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {isUploading && (
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-gray-500">Uploading file…</span>
+                        <span className="text-primary-600 font-bold">{uploadProgress}%</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 dark:bg-dark-border rounded-full overflow-hidden">
+                        <div className="h-full bg-primary-500 rounded-full transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -187,10 +282,18 @@ export default function Create() {
 
               <button
                 onClick={handleCreate}
-                disabled={createClipboard.isPending}
+                disabled={createClipboard.isPending || isUploading}
                 className="btn-primary py-2 px-5 text-sm whitespace-nowrap"
               >
-                {createClipboard.isPending ? (
+                {isUploading ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Uploading…
+                  </>
+                ) : createClipboard.isPending ? (
                   <>
                     <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
