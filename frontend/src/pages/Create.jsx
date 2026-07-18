@@ -8,7 +8,6 @@ import { clipboardApi } from '../api/clipboard'
 
 import { EXPIRY_OPTIONS, DEFAULT_EXPIRY_KEY, DEFAULT_BURN_KEY, DEFAULT_EXPIRY_VALUE, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '../utils/constants'
 import { formatBytes } from '../utils/helpers'
-import { generateKey, encryptContent, buildEncryptedUrl } from '../utils/encryption'
 import toast from 'react-hot-toast'
 
 function Toggle({ value, onChange, colorOn = 'bg-[#F5C518]' }) {
@@ -38,7 +37,6 @@ export default function Create() {
   )
   const [usePassword, setUsePassword] = useState(false)
   const [password, setPassword] = useState('')
-  const [useEncrypt, setUseEncrypt] = useState(false)
   const [isSearchable, setIsSearchable] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [mode, setMode] = useState('text')
@@ -62,18 +60,12 @@ export default function Create() {
     if (mode === 'text' && !content.trim()) { toast.error('Please enter some content'); return }
     if (mode === 'file' && pendingFiles.length === 0) { toast.error('Please select a file'); return }
     try {
-      let finalContent = mode === 'text' ? content : ''
-      let encKey = null
-      if (useEncrypt && finalContent) {
-        encKey = await generateKey()
-        finalContent = await encryptContent(finalContent, encKey)
-      }
       const payload = {
-        content: finalContent,
+        content: mode === 'text' ? content : '',
         expiry_hours: expiryHours,
         burn_after_read: burnAfterRead,
-        is_encrypted: useEncrypt && !!encKey,
-        is_searchable: isSearchable && !useEncrypt,
+        is_encrypted: false,
+        is_searchable: isSearchable,
       }
       if (usePassword && password) payload.raw_password = password
 
@@ -104,11 +96,7 @@ export default function Create() {
       }
 
       toast.success(`Clipboard #${clipboard.code} created`)
-      if (encKey) {
-        window.location.href = buildEncryptedUrl(clipboard.code, encKey)
-      } else {
-        navigate(`/clipboard/${clipboard.code}`)
-      }
+      navigate(`/clipboard/${clipboard.code}`)
     } catch {}
   }
 
@@ -332,12 +320,7 @@ export default function Create() {
 
               {/* Advanced button — pushed right */}
               <div className="ml-auto flex items-center gap-1.5">
-                {useEncrypt && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 whitespace-nowrap">
-                    E2E
-                  </span>
-                )}
-                {isSearchable && !useEncrypt && (
+                {isSearchable && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 whitespace-nowrap">
                     Public
                   </span>
@@ -372,24 +355,11 @@ export default function Create() {
                   className="overflow-hidden"
                 >
                   <div className="flex items-center gap-5 pt-3 border-t border-gray-100 dark:border-dark-border">
-                    {/* E2E Encryption */}
-                    <label className="flex items-center gap-2 cursor-pointer group" title="AES-GCM 256-bit — key never leaves your browser">
-                      <Toggle value={useEncrypt} onChange={(v) => { setUseEncrypt(v); if (v) setIsSearchable(false) }} colorOn="bg-green-500" />
-                      <div>
-                        <span className={`text-xs font-semibold block transition-colors ${useEncrypt ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                          E2E Encrypt
-                        </span>
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500">AES-GCM 256-bit, key in URL</span>
-                      </div>
-                    </label>
-
-                    <div className="w-px h-8 bg-gray-200 dark:bg-dark-border" />
-
                     {/* Discoverable */}
                     <label className="flex items-center gap-2 cursor-pointer group" title="Allow content to appear in public search results">
-                      <Toggle value={isSearchable && !useEncrypt} onChange={(v) => { setIsSearchable(v); if (v) setUseEncrypt(false) }} colorOn="bg-blue-500" />
+                      <Toggle value={isSearchable} onChange={setIsSearchable} colorOn="bg-blue-500" />
                       <div>
-                        <span className={`text-xs font-semibold block transition-colors ${isSearchable && !useEncrypt ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                        <span className={`text-xs font-semibold block transition-colors ${isSearchable ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
                           Discoverable
                         </span>
                         <span className="text-[10px] text-gray-400 dark:text-gray-500">Show in public search</span>
