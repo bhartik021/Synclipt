@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.throttling import AnonRateThrottle
-from django.db.models import F, Count
+from django.db.models import F, Count, Q
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from channels.layers import get_channel_layer
@@ -185,7 +185,7 @@ class VerifyPasswordView(APIView):
 
 
 class ClipboardSearchView(APIView):
-    """GET /api/clipboard/search/?q=... — searches opt-in public clipboards."""
+    """GET /api/clipboard/search/?q=... — searches opt-in public clipboards by content or code."""
 
     def get(self, request):
         q = request.query_params.get('q', '').strip()
@@ -196,7 +196,7 @@ class ClipboardSearchView(APIView):
             Clipboard.objects
             .filter(is_searchable=True, is_burned=False)
             .filter(expires_at__gt=timezone.now())
-            .filter(content__icontains=q)
+            .filter(Q(content__icontains=q) | Q(code__icontains=q.upper()))
             .order_by('-created_at')[:20]
         )
         return Response({'results': ClipboardSearchResultSerializer(qs, many=True).data})

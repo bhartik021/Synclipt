@@ -316,7 +316,7 @@ export default function Retrieve() {
                 className="flex-1 bg-transparent border-0 outline-none text-sm
                            text-gray-900 dark:text-white
                            placeholder-gray-400 dark:placeholder-gray-500"
-                placeholder="Search by content…"
+                placeholder="Search by content or code…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -359,25 +359,37 @@ export default function Retrieve() {
                     <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 mb-3">
                       {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
                     </p>
-                    {searchResults.map((r) => (
-                      <button
-                        key={r.code}
-                        onClick={() => navigate(`/clipboard/${r.code}`)}
-                        className="w-full text-left rounded-xl border border-gray-100 dark:border-dark-border
-                                   bg-gray-50 dark:bg-dark-border/30 px-4 py-3
-                                   hover:border-[#F5C518]/50 hover:bg-[#FFFBEB]/60 dark:hover:bg-[#F5C518]/5
-                                   transition-all group"
-                      >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="code-badge">{r.code}</span>
-                          <span className="text-[11px] text-gray-400 tabular-nums">{formatExpiry(r.expires_at)}</span>
-                        </div>
-                        <p className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate leading-relaxed
-                                      group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                          {r.content}
-                        </p>
-                      </button>
-                    ))}
+                    {searchResults.map((r) => {
+                      const matchedByCode = r.code.includes(searchQuery.toUpperCase()) &&
+                        !r.content?.toLowerCase().includes(searchQuery.toLowerCase())
+                      return (
+                        <button
+                          key={r.code}
+                          onClick={() => navigate(`/clipboard/${r.code}`)}
+                          className="w-full text-left rounded-xl border border-gray-100 dark:border-dark-border
+                                     bg-gray-50 dark:bg-dark-border/30 px-4 py-3
+                                     hover:border-[#F5C518]/50 hover:bg-[#FFFBEB]/60 dark:hover:bg-[#F5C518]/5
+                                     transition-all group"
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="code-badge">{r.code}</span>
+                              {r.is_encrypted && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">E2E</span>
+                              )}
+                              {matchedByCode && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">code match</span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-gray-400 tabular-nums">{formatExpiry(r.expires_at)}</span>
+                          </div>
+                          <p className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate leading-relaxed
+                                        group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                            {r.is_encrypted ? '🔒 Encrypted content' : (r.content || 'No text content')}
+                          </p>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </motion.div>
