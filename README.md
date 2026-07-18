@@ -20,11 +20,11 @@ That's it. The default use case takes about 10 seconds.
 ## What you can do with it
 
 **Create a clipboard**
-- Paste text, code, markdown — anything
+- Paste text, code, markdown — anything, or drop a file
 - Optionally set a password so only the person who knows it can view it
 - Toggle "Burn after read" and it self-destructs after the first person opens it
 - Toggle "Discoverable" to make it searchable by anyone (off by default — all clipboards are private)
-- Toggle "E2E Encrypt" and the browser encrypts the content before it ever leaves your device — the server only stores ciphertext, even if someone hacks the database they get nothing useful
+- The creator gets a delete token stored in their browser — only they can delete the clipboard; everyone else's delete button is hidden
 
 **Share it**
 - 6-character code — type it anywhere
@@ -44,7 +44,7 @@ That's it. The default use case takes about 10 seconds.
 - File is deleted from disk when the clipboard expires or you delete it
 
 **Find clipboards**
-- Search tab on the Retrieve page — searches all clipboards marked Discoverable
+- Search tab on the Retrieve page — searches all clipboards marked Discoverable by content or by code
 - Your private clipboards never appear, even in search
 
 **Analytics**
@@ -199,21 +199,6 @@ To test across devices: open the Network URL from your phone, create a clipboard
 
 ---
 
-## End-to-end encryption explained
-
-When you enable "E2E Encrypt" on the Create page:
-
-- The browser generates a random 256-bit AES key
-- Your text is encrypted **in the browser** before being sent anywhere
-- The encrypted blob is stored on the server
-- The decryption key is put in the **URL hash** — the part after `#` — which browsers never send to servers
-- Anyone who has the full link (including the `#key` part) can decrypt and read it
-- Anyone without that key — including the server, including us — sees only random-looking bytes
-
-Even if the database was stolen, the attacker would have no way to read any E2E-encrypted clipboard.
-
----
-
 ## How the live sync works (for developers)
 
 Every clipboard page opens a WebSocket connection to `ws://localhost:8000/ws/clipboard/{CODE}/`.
@@ -248,7 +233,7 @@ Synclipt/
 │   ├── hooks/                  # useClipboard, useWebSocket, useYjs, usePublicIP
 │   ├── api/                    # all API calls in one place (clipboard.js, files.js)
 │   ├── context/                # ThemeContext (light/dark/system)
-│   └── utils/                  # helpers, constants, encryption utilities
+│   └── utils/                  # helpers, constants
 │
 └── mobile/                     # React Native (Expo) app
     ├── App.js                  # navigation setup
@@ -269,9 +254,9 @@ Synclipt/
 | `POST` | `/api/clipboard/` | Create a new clipboard |
 | `GET` | `/api/clipboard/{code}/` | Get clipboard content (also records a view) |
 | `PUT` | `/api/clipboard/{code}/` | Update the content |
-| `DELETE` | `/api/clipboard/{code}/` | Delete it permanently |
+| `DELETE` | `/api/clipboard/{code}/` | Delete it permanently (requires `X-Delete-Token` header — issued to the creator at create time) |
 | `POST` | `/api/clipboard/{code}/verify-password/` | Unlock a password-protected clipboard |
-| `GET` | `/api/clipboard/search/?q=your+query` | Search all discoverable clipboards |
+| `GET` | `/api/clipboard/search/?q=your+query` | Search discoverable clipboards by content or code |
 | `GET` | `/api/clipboard/{code}/analytics/` | Get daily view counts for a clipboard |
 
 ### File endpoints

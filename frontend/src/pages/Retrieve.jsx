@@ -374,9 +374,6 @@ export default function Retrieve() {
                           <div className="flex items-center justify-between mb-1.5">
                             <div className="flex items-center gap-2">
                               <span className="code-badge">{r.code}</span>
-                              {r.is_encrypted && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">E2E</span>
-                              )}
                               {matchedByCode && (
                                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">code match</span>
                               )}
@@ -385,7 +382,7 @@ export default function Retrieve() {
                           </div>
                           <p className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate leading-relaxed
                                         group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                            {r.is_encrypted ? '🔒 Encrypted content' : (r.content || 'No text content')}
+                            {r.content || 'No text content'}
                           </p>
                         </button>
                       )

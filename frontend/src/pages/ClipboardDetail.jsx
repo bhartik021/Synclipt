@@ -12,7 +12,6 @@ import FileCard from '../components/Files/FileCard'
 import FileUpload from '../components/Files/FileUpload'
 import { ClipboardSkeleton } from '../components/UI/Skeleton'
 import { copyToClipboard, formatExpiry, formatDate, buildClipboardUrl } from '../utils/helpers'
-import { getKeyFromHash, decryptContent } from '../utils/encryption'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus, prism } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import ReactMarkdown from 'react-markdown'
@@ -206,8 +205,6 @@ export default function ClipboardDetail() {
 
   const [editing, setEditing] = useState(false)
   const [editContent, setEditContent] = useState('')
-  const [decryptedContent, setDecryptedContent] = useState(null)
-  const [decryptError, setDecryptError] = useState(false)
   const [showQR, setShowQR] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [passwordVerified, setPasswordVerified] = useState(false)
@@ -252,17 +249,6 @@ export default function ClipboardDetail() {
   useEffect(() => {
     if (clipboard?.has_password && !passwordVerified) setShowPassword(true)
   }, [clipboard?.code])
-
-  // Decrypt E2E content if key is present in URL hash
-  useEffect(() => {
-    if (!clipboard?.is_encrypted || !clipboard?.content) return
-    const key = getKeyFromHash()
-    if (!key) { setDecryptError(true); return }
-    decryptContent(clipboard.content, key).then((plain) => {
-      if (plain === null) setDecryptError(true)
-      else setDecryptedContent(plain)
-    })
-  }, [clipboard?.content, clipboard?.is_encrypted])
 
   const copyLink = () => {
     navigator.clipboard.writeText(buildClipboardUrl(code))
@@ -318,10 +304,7 @@ export default function ClipboardDetail() {
     ? `clipboard.${LANG_EXT[language] || language}`
     : 'clipboard.txt'
 
-  // If encrypted, show decrypted text once available; fall back to raw (ciphertext) otherwise
-  const displayContent = clipboard?.is_encrypted
-    ? (decryptedContent ?? (decryptError ? '' : null))
-    : clipboard?.content
+  const displayContent = clipboard?.content
 
   /* loading */
   if (isLoading) return (
@@ -440,25 +423,6 @@ export default function ClipboardDetail() {
               </div>
 
               {/* Block content */}
-              {/* E2E encryption status banner */}
-              {clipboard.is_encrypted && (
-                <div className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold border-b
-                  ${decryptError
-                    ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800 text-red-600 dark:text-red-400'
-                    : decryptedContent !== null
-                      ? 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800 text-green-700 dark:text-green-400'
-                      : 'bg-gray-50 dark:bg-dark-border/40 border-gray-100 dark:border-dark-border text-gray-400'
-                  }`}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-                  </svg>
-                  {decryptError
-                    ? 'Cannot decrypt — key missing or wrong. Share the full URL including #e2e=…'
-                    : decryptedContent !== null
-                      ? 'Decrypted — AES-GCM 256-bit (key never sent to server)'
-                      : 'Encrypted — decrypting…'}
-                </div>
-              )}
               <AnimatePresence mode="wait">
                 {editing ? (
                   <motion.div key="edit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -530,16 +494,12 @@ export default function ClipboardDetail() {
                 ) : (
                   <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="flex flex-col items-center justify-center py-14 gap-3">
-                    <p className="text-sm text-gray-400 dark:text-gray-500">
-                      {clipboard.is_encrypted && displayContent === '' ? 'Decryption failed — key not found in URL' : 'No content yet'}
-                    </p>
-                    {!clipboard.is_encrypted && (
-                      <button onClick={() => { setEditContent(''); setEditing(true) }}
-                        className="text-sm font-semibold text-[#b8860b] dark:text-[#F5C518]
-                                   hover:opacity-70 transition-opacity">
-                        + Add content
-                      </button>
-                    )}
+                    <p className="text-sm text-gray-400 dark:text-gray-500">No content yet</p>
+                    <button onClick={() => { setEditContent(''); setEditing(true) }}
+                      className="text-sm font-semibold text-[#b8860b] dark:text-[#F5C518]
+                                 hover:opacity-70 transition-opacity">
+                      + Add content
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>

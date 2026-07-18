@@ -13,7 +13,7 @@ class ClipboardCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clipboard
         fields = ['id', 'code', 'delete_token', 'content', 'raw_password', 'expiry_hours',
-                  'burn_after_read', 'is_encrypted', 'is_searchable', 'expires_at', 'created_at']
+                  'burn_after_read', 'is_searchable', 'expires_at', 'created_at']
         read_only_fields = ['id', 'code', 'expires_at', 'created_at']
 
     def create(self, validated_data):
@@ -35,8 +35,8 @@ class ClipboardPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clipboard
         fields = ['id', 'code', 'content', 'has_password', 'burn_after_read',
-                  'is_burned', 'is_encrypted', 'is_searchable', 'expires_at',
-                  'view_count', 'created_at', 'updated_at', 'is_expired', 'files']
+                  'is_burned', 'is_searchable', 'expires_at', 'view_count',
+                  'created_at', 'updated_at', 'is_expired', 'files']
 
     def get_files(self, obj):
         from files.serializers import FileShareSerializer
@@ -52,7 +52,7 @@ class ClipboardUpdateSerializer(serializers.ModelSerializer):
 class ClipboardSearchResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clipboard
-        fields = ['code', 'content', 'created_at', 'expires_at', 'is_encrypted']
+        fields = ['code', 'content', 'created_at', 'expires_at']
 
 
 class PasswordVerifySerializer(serializers.Serializer):

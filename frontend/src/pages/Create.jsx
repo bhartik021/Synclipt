@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useCreateClipboard } from '../hooks/useClipboard'
 import { filesApi } from '../api/files'
 import { clipboardApi } from '../api/clipboard'
-
 import { EXPIRY_OPTIONS, DEFAULT_EXPIRY_KEY, DEFAULT_BURN_KEY, DEFAULT_EXPIRY_VALUE, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '../utils/constants'
 import { formatBytes } from '../utils/helpers'
 import toast from 'react-hot-toast'
@@ -38,7 +37,6 @@ export default function Create() {
   const [usePassword, setUsePassword] = useState(false)
   const [password, setPassword] = useState('')
   const [isSearchable, setIsSearchable] = useState(false)
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [mode, setMode] = useState('text')
   const [pendingFiles, setPendingFiles] = useState([])
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -60,11 +58,11 @@ export default function Create() {
     if (mode === 'text' && !content.trim()) { toast.error('Please enter some content'); return }
     if (mode === 'file' && pendingFiles.length === 0) { toast.error('Please select a file'); return }
     try {
+      const finalContent = mode === 'text' ? content : ''
       const payload = {
-        content: mode === 'text' ? content : '',
+        content: finalContent,
         expiry_hours: expiryHours,
         burn_after_read: burnAfterRead,
-        is_encrypted: false,
         is_searchable: isSearchable,
       }
       if (usePassword && password) payload.raw_password = password
@@ -98,6 +96,7 @@ export default function Create() {
       toast.success(`Clipboard #${clipboard.code} created`)
       navigate(`/clipboard/${clipboard.code}`)
     } catch {}
+
   }
 
   return (
@@ -300,8 +299,8 @@ export default function Create() {
               </button>
             </div>
 
-            {/* ── Row 2: toggles ── */}
-            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-dark-border">
+            {/* ── Toggles row ── */}
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-dark-border flex-wrap">
               {/* Burn toggle */}
               <label className="flex items-center gap-2 cursor-pointer group">
                 <Toggle value={burnAfterRead} onChange={setBurnAfterRead} colorOn="bg-red-500" />
@@ -318,57 +317,14 @@ export default function Create() {
                 </span>
               </label>
 
-              {/* Advanced button — pushed right */}
-              <div className="ml-auto flex items-center gap-1.5">
-                {isSearchable && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 whitespace-nowrap">
-                    Public
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced((v) => !v)}
-                  className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap
-                    ${showAdvanced
-                      ? 'bg-gray-200 dark:bg-dark-border text-gray-700 dark:text-gray-200'
-                      : 'text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-dark-border hover:text-gray-700 dark:hover:text-gray-200'
-                    }`}
-                >
-                  <svg className="w-3 h-3" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
-                  </svg>
-                  Advanced
-                  <svg className={`w-2.5 h-2.5 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} viewBox="0 0 10 6" fill="none">
-                    <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </button>
-              </div>
+              {/* Discoverable toggle */}
+              <label className="flex items-center gap-2 cursor-pointer group" title="Allow content to appear in public search results">
+                <Toggle value={isSearchable} onChange={setIsSearchable} colorOn="bg-blue-500" />
+                <span className={`text-xs font-semibold whitespace-nowrap transition-colors ${isSearchable ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`}>
+                  Discoverable
+                </span>
+              </label>
             </div>
-
-            {/* ── Advanced row (collapsible) ── */}
-            <AnimatePresence>
-              {showAdvanced && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="flex items-center gap-5 pt-3 border-t border-gray-100 dark:border-dark-border">
-                    {/* Discoverable */}
-                    <label className="flex items-center gap-2 cursor-pointer group" title="Allow content to appear in public search results">
-                      <Toggle value={isSearchable} onChange={setIsSearchable} colorOn="bg-blue-500" />
-                      <div>
-                        <span className={`text-xs font-semibold block transition-colors ${isSearchable ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                          Discoverable
-                        </span>
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500">Show in public search</span>
-                      </div>
-                    </label>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Password input (expands) */}
             <AnimatePresence>

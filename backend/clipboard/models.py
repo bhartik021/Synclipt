@@ -14,7 +14,6 @@ class Clipboard(models.Model):
     expires_at = models.DateTimeField()
     burn_after_read = models.BooleanField(default=False)
     is_burned = models.BooleanField(default=False)
-    is_encrypted = models.BooleanField(default=False)
     is_searchable = models.BooleanField(default=False)
     view_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
