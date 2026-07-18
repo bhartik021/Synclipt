@@ -1,8 +1,5 @@
 {
-  "redirects": [
-    { "source": "/", "destination": "/synclipt/" }
-  ],
   "rewrites": [
-    { "source": "/synclipt/(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
