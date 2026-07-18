@@ -1,7 +1,5 @@
-import os
 import logging
-import mimetypes
-from django.http import FileResponse, Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework.views import APIView
@@ -9,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
-BASE_DIR = settings.BASE_DIR
 from django.db.models import F
 from .models import FileShare
 from .serializers import FileShareSerializer
@@ -119,13 +116,4 @@ class FileDownloadView(APIView):
         FileShare.objects.filter(pk=f.pk).update(download_count=F('download_count') + 1)
         f.refresh_from_db(fields=['download_count'])
         logger.info('File downloaded: id=%s name=%s downloads=%s', f.id, f.original_name, f.download_count)
-
-        # Cloud storage: redirect to the file URL directly
-        if not f.file.name.startswith('/') and not os.path.exists(str(BASE_DIR / 'media' / f.file.name)):
-            return HttpResponseRedirect(f.file.url)
-
-        # Local storage: stream the file
-        safe_name = f.original_name.replace('\r', '').replace('\n', '').replace('"', '')
-        response = FileResponse(open(f.file.path, 'rb'), content_type=f.file_type)
-        response['Content-Disposition'] = f'attachment; filename="{safe_name}"'
-        return response
+        return HttpResponseRedirect(f.file.url)
