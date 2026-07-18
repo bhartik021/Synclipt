@@ -1,0 +1,20 @@
+# Direct dependencies only — run `pip-compile requirements.in` to regenerate requirements.txt
+
+Django>=4.2,<5.0
+djangorestframework>=3.14
+django-cors-headers>=4.3
+channels>=4.0
+channels-redis>=4.1
+redis>=5.0
+psycopg2-binary>=2.9.10
+Pillow>=11.0
+python-decouple>=3.8
+django-ratelimit>=4.1
+celery>=5.4
+django-celery-beat>=2.7
+whitenoise>=6.7
+gunicorn>=22.0
+daphne>=4.1
+uvicorn[standard]>=0.30
+cryptography>=43.0
+django-storages>=1.14

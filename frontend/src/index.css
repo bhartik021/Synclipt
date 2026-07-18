@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #F8F8F6;
+  }
+
+  .dark body { background-color: #0F0F1A; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 999px; }
+  .dark ::-webkit-scrollbar-thumb { background: #374151; }
+
+  ::selection { background: #F5C518; color: #111; }
+}
+
+@layer components {
+
+  /* ── Cards ───────────────────────────────────────────────── */
+  .card {
+    @apply bg-white dark:bg-dark-card rounded-2xl
+           border border-gray-100 dark:border-dark-border
+           shadow-[0_1px_4px_rgba(0,0,0,0.06)];
+  }
+
+  .card-active {
+    @apply bg-white dark:bg-dark-card rounded-2xl
+           shadow-[0_0_0_2.5px_#F5C518,0_4px_20px_rgba(245,197,24,0.15)];
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-[#F5C518] hover:bg-[#e6b800] active:bg-[#d4a900]
+           text-gray-900 font-bold rounded-xl px-5 py-2.5
+           transition-all duration-150 active:scale-[0.97]
+           shadow-[0_2px_10px_rgba(245,197,24,0.4)]
+           hover:shadow-[0_4px_18px_rgba(245,197,24,0.5)]
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2
+           bg-white dark:bg-dark-card
+           border border-gray-200 dark:border-dark-border
+           text-gray-700 dark:text-gray-300 font-semibold
+           rounded-xl px-5 py-2.5
+           hover:border-gray-300 dark:hover:border-gray-500
+           hover:bg-gray-50 dark:hover:bg-dark-border
+           transition-all duration-150 active:scale-[0.97]
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5
+           text-gray-500 dark:text-gray-400
+           hover:text-gray-900 dark:hover:text-white
+           hover:bg-gray-100 dark:hover:bg-dark-border
+           font-medium px-3 py-2 rounded-xl
+           transition-all duration-150;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-1.5
+           text-red-500 hover:text-red-600
+           hover:bg-red-50 dark:hover:bg-red-900/20
+           font-medium px-3 py-2 rounded-xl
+           transition-all duration-150;
+  }
+
+  /* ── Inputs ──────────────────────────────────────────────── */
+  .input {
+    @apply w-full px-4 py-3 rounded-xl
+           bg-white dark:bg-dark-card
+           border border-gray-200 dark:border-dark-border
+           text-gray-900 dark:text-white
+           placeholder-gray-400 dark:placeholder-gray-600
+           focus:outline-none focus:border-[#F5C518]
+           focus:ring-[3px] focus:ring-[#F5C518]/20
+           transition-all duration-150;
+  }
+
+  .otp-box {
+    @apply w-14 h-16 rounded-2xl border-2 text-center font-mono
+           text-2xl font-bold uppercase
+           bg-white dark:bg-dark-card
+           border-gray-200 dark:border-dark-border
+           text-gray-900 dark:text-white
+           focus:outline-none focus:border-[#F5C518]
+           focus:ring-[3px] focus:ring-[#F5C518]/25
+           transition-all duration-150 caret-transparent;
+  }
+
+  .otp-box.filled {
+    @apply border-[#F5C518] bg-[#FFFBEB] dark:bg-[#2a240a];
+  }
+
+  /* ── Toggle ──────────────────────────────────────────────── */
+  .toggle-track {
+    @apply relative w-11 h-6 rounded-full cursor-pointer
+           flex-shrink-0 transition-colors duration-200;
+  }
+
+  .toggle-thumb {
+    @apply absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white
+           shadow-[0_1px_4px_rgba(0,0,0,0.25)]
+           transition-transform duration-200 ease-in-out;
+  }
+
+  /* ── Tags ────────────────────────────────────────────────── */
+  .tag {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md
+           text-[10px] font-black tracking-widest uppercase;
+  }
+
+  .tag-live      { @apply tag bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400; }
+  .tag-text      { @apply tag bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400; }
+  .tag-file      { @apply tag bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400; }
+  .tag-protected { @apply tag bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400; }
+  .tag-burned    { @apply tag bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400; }
+  .tag-expired   { @apply tag bg-gray-100 dark:bg-gray-800 text-gray-500; }
+
+  .code-badge {
+    @apply inline-block font-mono font-black text-sm
+           bg-[#FFFBEB] dark:bg-[#F5C518]/15
+           text-[#92650a] dark:text-[#F5C518]
+           px-3 py-1 rounded-lg
+           border border-[#F5C518]/40
+           tracking-[0.15em];
+  }
+
+  /* ── Section label ───────────────────────────────────────── */
+  .section-label {
+    @apply text-[10px] font-black tracking-[0.15em] uppercase
+           text-[#b8860b] dark:text-[#F5C518]/70 mb-3;
+  }
+
+  /* ── Live dot ────────────────────────────────────────────── */
+  .live-dot {
+    @apply inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse;
+  }
+
+  /* ── Activity panel ──────────────────────────────────────── */
+  .activity-panel {
+    @apply bg-[#EFF6FF] dark:bg-[#0a1628]
+           border border-blue-100 dark:border-blue-900/30 rounded-2xl overflow-hidden;
+  }
+
+  /* ── Pill tab ────────────────────────────────────────────── */
+  .pill-tab {
+    @apply flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
+           transition-all duration-150 whitespace-nowrap;
+  }
+
+  .pill-tab-active {
+    @apply pill-tab bg-gray-900 dark:bg-white text-white dark:text-gray-900;
+  }
+
+  .pill-tab-inactive {
+    @apply pill-tab text-gray-500 dark:text-gray-400
+           hover:text-gray-800 dark:hover:text-gray-200
+           hover:bg-gray-100 dark:hover:bg-dark-border;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+}

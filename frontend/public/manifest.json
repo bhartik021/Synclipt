@@ -1,0 +1,27 @@
+{
+  "name": "Synclipt",
+  "short_name": "Synclipt",
+  "description": "Real-time clipboard sharing across devices",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0F1A",
+  "theme_color": "#F5C518",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Create Clipboard",
+      "url": "/create",
+      "description": "Create a new clipboard"
+    },
+    {
+      "name": "Retrieve Clipboard",
+      "url": "/retrieve",
+      "description": "Retrieve a clipboard by code"
+    }
+  ]
+}
