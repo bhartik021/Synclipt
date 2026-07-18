@@ -7,12 +7,14 @@ from .models import Clipboard
 class ClipboardCreateSerializer(serializers.ModelSerializer):
     raw_password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     expiry_hours = serializers.IntegerField(write_only=True, default=24, min_value=1, max_value=720)
+    # Accept a client-generated token so the frontend never depends on the response to know the token
+    delete_token = serializers.UUIDField(required=False)
 
     class Meta:
         model = Clipboard
         fields = ['id', 'code', 'delete_token', 'content', 'raw_password', 'expiry_hours',
                   'burn_after_read', 'is_encrypted', 'is_searchable', 'expires_at', 'created_at']
-        read_only_fields = ['id', 'code', 'delete_token', 'expires_at', 'created_at']
+        read_only_fields = ['id', 'code', 'expires_at', 'created_at']
 
     def create(self, validated_data):
         raw_password = validated_data.pop('raw_password', None)

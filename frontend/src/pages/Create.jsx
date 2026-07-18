@@ -76,12 +76,14 @@ export default function Create() {
         is_searchable: isSearchable && !useEncrypt,
       }
       if (usePassword && password) payload.raw_password = password
-      const clipboard = await createClipboard.mutateAsync(payload)
 
-      // Save token immediately — before any navigation so canDelete is true on arrival
-      if (clipboard.delete_token) {
-        clipboardApi.saveToken(clipboard.code, clipboard.delete_token)
-      }
+      // Generate token on the frontend so we never depend on the backend returning it
+      const deleteToken = crypto.randomUUID()
+      payload.delete_token = deleteToken
+
+      const clipboard = await createClipboard.mutateAsync(payload)
+      // Save immediately using our own token (clipboard.code is all we need from the response)
+      clipboardApi.saveToken(clipboard.code, deleteToken)
 
       if (mode === 'file' && pendingFiles.length > 0) {
         setIsUploading(true)
