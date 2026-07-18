@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from pathlib import Path
 from decouple import AutoConfig
 
@@ -58,22 +59,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'synclipt.wsgi.application'
 ASGI_APPLICATION = 'synclipt.asgi.application'
 
+_db_default = (
+    f"postgresql://{config('DB_USER', default='postgres')}"
+    f":{config('DB_PASSWORD', default='postgres')}"
+    f"@{config('DB_HOST', default='localhost')}"
+    f":{config('DB_PORT', default='5432')}"
+    f"/{config('DB_NAME', default='synclipt')}"
+)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='synclipt'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='postgres'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
-    }
+    'default': dj_database_url.config(default=_db_default, conn_max_age=600)
 }
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [(config('REDIS_HOST', default='localhost'), config('REDIS_PORT', default=6379, cast=int))],
+            'hosts': [config('REDIS_URL', default='redis://localhost:6379/0')],
         },
     },
 }

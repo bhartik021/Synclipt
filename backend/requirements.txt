@@ -66,10 +66,13 @@ cryptography==43.0.3
     #   service-identity
 daphne==4.1.2
     # via -r requirements.in
+dj-database-url==3.1.2
+    # via -r requirements.in
 django==4.2.16
     # via
     #   -r requirements.in
     #   channels
+    #   dj-database-url
     #   django-celery-beat
     #   django-cors-headers
     #   django-storages
