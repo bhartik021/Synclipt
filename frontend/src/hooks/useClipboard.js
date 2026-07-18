@@ -17,11 +17,6 @@ export function useClipboardQuery(code) {
 export function useCreateClipboard() {
   return useMutation({
     mutationFn: (data) => clipboardApi.create(data).then((r) => r.data),
-    onSuccess: (data) => {
-      if (data.code && data.delete_token) {
-        clipboardApi.saveToken(data.code, data.delete_token)
-      }
-    },
     onError: (error) => {
       const msg = error.response?.data?.error
         || error.response?.data?.detail

@@ -4,6 +4,7 @@ import { useDropzone } from 'react-dropzone'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCreateClipboard } from '../hooks/useClipboard'
 import { filesApi } from '../api/files'
+import { clipboardApi } from '../api/clipboard'
 
 import { EXPIRY_OPTIONS, DEFAULT_EXPIRY_KEY, DEFAULT_BURN_KEY, DEFAULT_EXPIRY_VALUE, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '../utils/constants'
 import { formatBytes } from '../utils/helpers'
@@ -76,6 +77,11 @@ export default function Create() {
       }
       if (usePassword && password) payload.raw_password = password
       const clipboard = await createClipboard.mutateAsync(payload)
+
+      // Save token immediately — before any navigation so canDelete is true on arrival
+      if (clipboard.delete_token) {
+        clipboardApi.saveToken(clipboard.code, clipboard.delete_token)
+      }
 
       if (mode === 'file' && pendingFiles.length > 0) {
         setIsUploading(true)
